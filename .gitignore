@@ -47,4 +47,25 @@ app.*.map.json
 .dart_tool/
 .idea/
 
-vehicle_tracking_system
+vehicle_tracking_system*.json
+firebase-adminsdk-*.json
+# Firebase credentials
+vehicle-tracking-system-f4934-firebase-adminsdk-fbsvc-*.json
+
+# Firebase credentials and sensitive files
+*.json
+firebase-adminsdk-*.json
+vehicle-tracking-system-*-firebase-adminsdk-*.json
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Google Cloud credentials
+google-services.json
+GoogleService-Info.plist
+
+# API Keys
+api_keys.dart
+secrets.dart
