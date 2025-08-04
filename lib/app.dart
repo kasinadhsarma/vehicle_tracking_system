@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'core/controllers/theme_controller.dart';
 import 'shared/widgets/custom_widgets.dart';
+import 'shared/widgets/real_world_map_widget.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/real_time_tracking_service.dart';
 
 class VehicleTrackingApp extends StatelessWidget {
   const VehicleTrackingApp({super.key});
@@ -832,13 +835,144 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
+  final RealTimeTrackingService _trackingService =
+      RealTimeTrackingService.instance;
+
+  bool _isInitialized = false;
+  bool _isTracking = false;
+  FleetOverview? _fleetOverview;
+
+  // Mock vehicle data for demonstration
   final List<Map<String, dynamic>> _vehicles = [
-    {'id': 'VH-001', 'lat': 40.7128, 'lng': -74.0060, 'status': 'Active'},
-    {'id': 'VH-002', 'lat': 40.7589, 'lng': -73.9851, 'status': 'Idle'},
-    {'id': 'VH-003', 'lat': 40.7282, 'lng': -73.7949, 'status': 'Active'},
-    {'id': 'VH-004', 'lat': 40.6892, 'lng': -74.0445, 'status': 'Offline'},
-    {'id': 'VH-005', 'lat': 40.7505, 'lng': -73.9934, 'status': 'Active'},
+    {
+      'id': 'VH-001',
+      'lat': 40.7128,
+      'lng': -74.0060,
+      'status': 'Active',
+      'driverId': 'driver_001',
+    },
+    {
+      'id': 'VH-002',
+      'lat': 40.7589,
+      'lng': -73.9851,
+      'status': 'Idle',
+      'driverId': 'driver_002',
+    },
+    {
+      'id': 'VH-003',
+      'lat': 40.7282,
+      'lng': -73.7949,
+      'status': 'Active',
+      'driverId': 'driver_003',
+    },
+    {
+      'id': 'VH-004',
+      'lat': 40.6892,
+      'lng': -74.0445,
+      'status': 'Offline',
+      'driverId': 'driver_004',
+    },
+    {
+      'id': 'VH-005',
+      'lat': 40.7505,
+      'lng': -73.9934,
+      'status': 'Active',
+      'driverId': 'driver_005',
+    },
   ];
+
+  String? _selectedVehicleId;
+  String? _selectedDriverId;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeServices();
+    _loadFleetOverview();
+  }
+
+  Future<void> _initializeServices() async {
+    try {
+      final success = await _trackingService.initialize();
+      if (success) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error initializing services: $e');
+    }
+  }
+
+  Future<void> _loadFleetOverview() async {
+    try {
+      final overview = await _trackingService.getFleetOverview();
+      setState(() {
+        _fleetOverview = overview;
+      });
+    } catch (e) {
+      debugPrint('Error loading fleet overview: $e');
+    }
+  }
+
+  Future<void> _startTracking(String vehicleId, String driverId) async {
+    if (!_isInitialized) return;
+
+    try {
+      final success = await _trackingService.startTracking(
+        vehicleId: vehicleId,
+        driverId: driverId,
+        mode: TrackingMode.normal,
+      );
+
+      if (success) {
+        setState(() {
+          _isTracking = true;
+          _selectedVehicleId = vehicleId;
+          _selectedDriverId = driverId;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Started tracking vehicle $vehicleId'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to start tracking: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _stopTracking() async {
+    try {
+      await _trackingService.stopTracking();
+      setState(() {
+        _isTracking = false;
+        _selectedVehicleId = null;
+        _selectedDriverId = null;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Stopped tracking'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to stop tracking: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -849,147 +983,67 @@ class _MapPageState extends State<MapPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              setState(() {
-                // Refresh map data
-              });
-            },
+            onPressed: _loadFleetOverview,
           ),
           IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // Show filter options
-            },
+            icon: const Icon(Icons.settings),
+            onPressed: _showMapSettings,
           ),
+          if (_isTracking)
+            IconButton(
+              icon: const Icon(Icons.stop),
+              onPressed: _stopTracking,
+              tooltip: 'Stop Tracking',
+            ),
         ],
       ),
       body: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.directions_car, color: Colors.green),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${_vehicles.where((v) => v['status'] == 'Active').length}',
-                          ),
-                          const Text('Active', style: TextStyle(fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.pause_circle, color: Colors.orange),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${_vehicles.where((v) => v['status'] == 'Idle').length}',
-                          ),
-                          const Text('Idle', style: TextStyle(fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        children: [
-                          const Icon(Icons.offline_bolt, color: Colors.red),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${_vehicles.where((v) => v['status'] == 'Offline').length}',
-                          ),
-                          const Text('Offline', style: TextStyle(fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+          _buildStatusCards(),
+          Expanded(
+            child: _isInitialized ? _buildAdvancedMap() : _buildLoadingView(),
+          ),
+        ],
+      ),
+      floatingActionButton: _buildTrackingFAB(),
+    );
+  }
+
+  Widget _buildStatusCards() {
+    final activeCount =
+        _fleetOverview?.activeVehicles ??
+        _vehicles.where((v) => v['status'] == 'Active').length;
+    final idleCount = _vehicles.where((v) => v['status'] == 'Idle').length;
+    final offlineCount = _vehicles
+        .where((v) => v['status'] == 'Offline')
+        .length;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildStatusCard(
+              icon: Icons.directions_car,
+              color: Colors.green,
+              count: activeCount,
+              label: 'Active',
             ),
           ),
           Expanded(
-            child: Container(
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.blue.shade50, Colors.blue.shade100],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Stack(
-                children: [
-                  const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.map, size: 120, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'Interactive Map View',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Google Maps integration will be implemented here',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // Mock vehicle markers
-                  ..._vehicles.map(
-                    (vehicle) => Positioned(
-                      left: (vehicle['lng'] + 74.1) * 200 + 50,
-                      top: (40.8 - vehicle['lat']) * 200 + 50,
-                      child: GestureDetector(
-                        onTap: () {
-                          _showVehicleInfo(vehicle);
-                        },
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: vehicle['status'] == 'Active'
-                                ? Colors.green
-                                : vehicle['status'] == 'Idle'
-                                ? Colors.orange
-                                : Colors.red,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: const Icon(
-                            Icons.directions_car,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            child: _buildStatusCard(
+              icon: Icons.pause_circle,
+              color: Colors.orange,
+              count: idleCount,
+              label: 'Idle',
+            ),
+          ),
+          Expanded(
+            child: _buildStatusCard(
+              icon: Icons.offline_bolt,
+              color: Colors.red,
+              count: offlineCount,
+              label: 'Offline',
             ),
           ),
         ],
@@ -997,21 +1051,227 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  void _showVehicleInfo(Map<String, dynamic> vehicle) {
+  Widget _buildStatusCard({
+    required IconData icon,
+    required Color color,
+    required int count,
+    required String label,
+  }) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 4),
+            Text(
+              count.toString(),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            Text(label, style: const TextStyle(fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdvancedMap() {
+    return RealWorldMapWidget(
+      vehicleId: _selectedVehicleId,
+      driverId: _selectedDriverId,
+      showGeofences: true,
+      showRoutes: true,
+      showBehaviorEvents: true,
+      mapType: MapType.normal,
+      initialZoom: 12.0,
+      initialCenter: const LatLng(40.7128, -74.0060), // New York
+      onMapReady: () {
+        debugPrint('Advanced map ready');
+      },
+      onLocationTap: (position) {
+        _showLocationOptions(position);
+      },
+    );
+  }
+
+  Widget _buildLoadingView() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Colors.blue.shade50, Colors.blue.shade100],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Initializing Real-Time Tracking...',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Setting up GPS, geofences, and behavior monitoring',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget? _buildTrackingFAB() {
+    if (!_isInitialized) return null;
+
+    return FloatingActionButton.extended(
+      onPressed: _isTracking ? null : _showVehicleSelector,
+      icon: Icon(_isTracking ? Icons.gps_fixed : Icons.gps_not_fixed),
+      label: Text(
+        _isTracking ? 'Tracking ${_selectedVehicleId}' : 'Start Tracking',
+      ),
+      backgroundColor: _isTracking ? Colors.green : Colors.blue,
+    );
+  }
+
+  void _showVehicleSelector() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        height: MediaQuery.of(context).size.height * 0.6,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select Vehicle to Track',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _vehicles.length,
+                itemBuilder: (context, index) {
+                  final vehicle = _vehicles[index];
+                  final isOffline = vehicle['status'] == 'Offline';
+
+                  return Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: isOffline ? Colors.red : Colors.green,
+                        child: Icon(Icons.directions_car, color: Colors.white),
+                      ),
+                      title: Text('Vehicle ${vehicle['id']}'),
+                      subtitle: Text(
+                        'Status: ${vehicle['status']}\n'
+                        'Driver: ${vehicle['driverId']}\n'
+                        'Location: ${vehicle['lat'].toStringAsFixed(4)}, ${vehicle['lng'].toStringAsFixed(4)}',
+                      ),
+                      trailing: isOffline
+                          ? const Icon(Icons.block, color: Colors.red)
+                          : const Icon(Icons.arrow_forward_ios),
+                      enabled: !isOffline,
+                      onTap: isOffline
+                          ? null
+                          : () {
+                              Navigator.pop(context);
+                              _startTracking(
+                                vehicle['id'],
+                                vehicle['driverId'],
+                              );
+                            },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLocationOptions(LatLng position) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.add_location),
+              title: const Text('Create Geofence'),
+              subtitle: Text(
+                'Lat: ${position.latitude.toStringAsFixed(6)}\n'
+                'Lng: ${position.longitude.toStringAsFixed(6)}',
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _createGeofence(position);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.navigation),
+              title: const Text('Get Directions'),
+              subtitle: const Text('Navigate to this location'),
+              onTap: () {
+                Navigator.pop(context);
+                _getDirections(position);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('Location Info'),
+              subtitle: const Text('View detailed information'),
+              onTap: () {
+                Navigator.pop(context);
+                _showLocationInfo(position);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMapSettings() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Vehicle ${vehicle['id']}'),
+        title: const Text('Map Settings'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Status: ${vehicle['status']}'),
-            Text('Latitude: ${vehicle['lat'].toStringAsFixed(4)}'),
-            Text('Longitude: ${vehicle['lng'].toStringAsFixed(4)}'),
-            const SizedBox(height: 8),
-            const Text('Driver: John Doe'),
-            const Text('Last Update: 2 minutes ago'),
+            SwitchListTile(
+              title: const Text('Show Geofences'),
+              value: true,
+              onChanged: (value) {
+                // TODO: Implement geofence toggle
+              },
+            ),
+            SwitchListTile(
+              title: const Text('Show Routes'),
+              value: true,
+              onChanged: (value) {
+                // TODO: Implement route toggle
+              },
+            ),
+            SwitchListTile(
+              title: const Text('Show Behavior Events'),
+              value: true,
+              onChanged: (value) {
+                // TODO: Implement behavior events toggle
+              },
+            ),
           ],
         ),
         actions: [
@@ -1019,12 +1279,48 @@ class _MapPageState extends State<MapPage> {
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Navigate to vehicle details
-            },
-            child: const Text('View Details'),
+        ],
+      ),
+    );
+  }
+
+  void _createGeofence(LatLng position) {
+    // TODO: Implement geofence creation dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Geofence creation feature will be implemented'),
+      ),
+    );
+  }
+
+  void _getDirections(LatLng position) {
+    // TODO: Implement directions feature
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Directions feature will be implemented')),
+    );
+  }
+
+  void _showLocationInfo(LatLng position) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Location Information'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Latitude: ${position.latitude.toStringAsFixed(6)}'),
+            Text('Longitude: ${position.longitude.toStringAsFixed(6)}'),
+            const SizedBox(height: 8),
+            const Text('Address: Loading...'),
+            const Text('Nearest Road: Loading...'),
+            const Text('Speed Limit: Loading...'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -2497,32 +2793,6 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showClearCacheDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Clear Cache'),
-        content: const Text('This will clear all cached data. Are you sure?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Cache cleared successfully!')),
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Clear'),
-          ),
-        ],
       ),
     );
   }

@@ -10,18 +10,19 @@ import '../models/location_model.dart';
 class GoogleMapsService {
   static GoogleMapsService? _instance;
   static GoogleMapsService get instance => _instance ??= GoogleMapsService._();
-  
+
   GoogleMapsService._();
 
   // API Configuration
   static const String _baseUrl = 'https://maps.googleapis.com/maps/api';
-  static const String _apiKey = 'YOUR_GOOGLE_MAPS_API_KEY'; // Replace with actual key
-  
+  static const String _apiKey =
+      'AIzaSyD5F_5z_paVTMWWoa9Of2tVAE1sCEtR6pM'; // Replace with actual key
+
   // Cache for API responses
   final Map<String, dynamic> _geocodeCache = {};
   final Map<String, String> _routeCache = {};
   final Map<String, double> _speedLimitCache = {};
-  
+
   // HTTP client for API calls
   late http.Client _httpClient;
   bool _isInitialized = false;
@@ -33,13 +34,12 @@ class GoogleMapsService {
   Future<bool> initialize() async {
     try {
       if (_isInitialized) return true;
-      
+
       _httpClient = http.Client();
       _isInitialized = true;
-      
+
       debugPrint('GoogleMapsService: Initialized successfully');
       return true;
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Initialization failed: $e');
       return false;
@@ -69,9 +69,14 @@ class GoogleMapsService {
 
       // Create cache key
       final cacheKey = _createDirectionsCacheKey(
-        origin, destination, waypoints, travelMode, avoidTolls, avoidHighways
+        origin,
+        destination,
+        waypoints,
+        travelMode,
+        avoidTolls,
+        avoidHighways,
       );
-      
+
       // Check cache first
       if (_routeCache.containsKey(cacheKey)) {
         return DirectionsResult.fromEncodedPolyline(_routeCache[cacheKey]!);
@@ -90,27 +95,28 @@ class GoogleMapsService {
 
       // Make API call
       final response = await _httpClient.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['status'] == 'OK' && data['routes'].isNotEmpty) {
           final route = data['routes'][0];
           final encodedPolyline = route['overview_polyline']['points'];
-          
+
           // Cache the result
           _routeCache[cacheKey] = encodedPolyline;
-          
+
           return DirectionsResult.fromApiResponse(data);
         } else {
-          debugPrint('GoogleMapsService: Directions API error: ${data['status']}');
+          debugPrint(
+            'GoogleMapsService: Directions API error: ${data['status']}',
+          );
           return null;
         }
       } else {
         debugPrint('GoogleMapsService: HTTP error: ${response.statusCode}');
         return null;
       }
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error getting directions: $e');
       return null;
@@ -130,9 +136,10 @@ class GoogleMapsService {
         return await _snapToRoads(locations);
       } else {
         // Simple polyline from raw coordinates
-        return locations.map((loc) => LatLng(loc.latitude, loc.longitude)).toList();
+        return locations
+            .map((loc) => LatLng(loc.latitude, loc.longitude))
+            .toList();
       }
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error getting route polyline: $e');
       return null;
@@ -145,19 +152,20 @@ class GoogleMapsService {
       // Batch locations in groups of 100 (API limit)
       const int batchSize = 100;
       List<LatLng> allSnappedPoints = [];
-      
+
       for (int i = 0; i < locations.length; i += batchSize) {
-        final end = (i + batchSize < locations.length) ? i + batchSize : locations.length;
+        final end = (i + batchSize < locations.length)
+            ? i + batchSize
+            : locations.length;
         final batch = locations.sublist(i, end);
-        
+
         final snappedBatch = await _snapBatchToRoads(batch);
         if (snappedBatch != null) {
           allSnappedPoints.addAll(snappedBatch);
         }
       }
-      
+
       return allSnappedPoints.isNotEmpty ? allSnappedPoints : null;
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error snapping to roads: $e');
       return null;
@@ -170,29 +178,31 @@ class GoogleMapsService {
       final path = locations
           .map((loc) => '${loc.latitude},${loc.longitude}')
           .join('|');
-      
-      final url = '$_baseUrl/snapToRoads/v1/snapToRoads'
+
+      final url =
+          '$_baseUrl/snapToRoads/v1/snapToRoads'
           '?path=$path'
           '&interpolate=true'
           '&key=$_apiKey';
 
       final response = await _httpClient.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['snappedPoints'] != null) {
           return (data['snappedPoints'] as List)
-              .map((point) => LatLng(
-                    point['location']['latitude'],
-                    point['location']['longitude'],
-                  ))
+              .map(
+                (point) => LatLng(
+                  point['location']['latitude'],
+                  point['location']['longitude'],
+                ),
+              )
               .toList();
         }
       }
-      
+
       return null;
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error in snap batch: $e');
       return null;
@@ -203,33 +213,33 @@ class GoogleMapsService {
   Future<GeocodeResult?> reverseGeocode(LatLng coordinates) async {
     try {
       final cacheKey = '${coordinates.latitude},${coordinates.longitude}';
-      
+
       // Check cache first
       if (_geocodeCache.containsKey(cacheKey)) {
         return GeocodeResult.fromCache(_geocodeCache[cacheKey]);
       }
 
-      final url = '$_baseUrl/geocode/json'
+      final url =
+          '$_baseUrl/geocode/json'
           '?latlng=${coordinates.latitude},${coordinates.longitude}'
           '&key=$_apiKey';
 
       final response = await _httpClient.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['status'] == 'OK' && data['results'].isNotEmpty) {
           final result = GeocodeResult.fromApiResponse(data['results'][0]);
-          
+
           // Cache the result
           _geocodeCache[cacheKey] = data['results'][0];
-          
+
           return result;
         }
       }
-      
+
       return null;
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error in reverse geocoding: $e');
       return null;
@@ -239,23 +249,23 @@ class GoogleMapsService {
   /// Get forward geocoding for address
   Future<LatLng?> geocodeAddress(String address) async {
     try {
-      final url = '$_baseUrl/geocode/json'
+      final url =
+          '$_baseUrl/geocode/json'
           '?address=${Uri.encodeComponent(address)}'
           '&key=$_apiKey';
 
       final response = await _httpClient.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['status'] == 'OK' && data['results'].isNotEmpty) {
           final location = data['results'][0]['geometry']['location'];
           return LatLng(location['lat'], location['lng']);
         }
       }
-      
+
       return null;
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error geocoding address: $e');
       return null;
@@ -266,33 +276,33 @@ class GoogleMapsService {
   Future<double?> getSpeedLimit(LatLng location) async {
     try {
       final cacheKey = '${location.latitude},${location.longitude}';
-      
+
       // Check cache first
       if (_speedLimitCache.containsKey(cacheKey)) {
         return _speedLimitCache[cacheKey];
       }
 
-      final url = '$_baseUrl/roads/v1/speedLimits'
+      final url =
+          '$_baseUrl/roads/v1/speedLimits'
           '?path=${location.latitude},${location.longitude}'
           '&key=$_apiKey';
 
       final response = await _httpClient.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['speedLimits'] != null && data['speedLimits'].isNotEmpty) {
           final speedLimit = data['speedLimits'][0]['speedLimit'].toDouble();
-          
+
           // Cache the result
           _speedLimitCache[cacheKey] = speedLimit;
-          
+
           return speedLimit;
         }
       }
-      
+
       return null;
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error getting speed limit: $e');
       return null;
@@ -300,26 +310,29 @@ class GoogleMapsService {
   }
 
   /// Get nearest roads information
-  Future<List<RoadInfo>?> getNearestRoads(LatLng location, {double radius = 50}) async {
+  Future<List<RoadInfo>?> getNearestRoads(
+    LatLng location, {
+    double radius = 50,
+  }) async {
     try {
-      final url = '$_baseUrl/roads/v1/nearestRoads'
+      final url =
+          '$_baseUrl/roads/v1/nearestRoads'
           '?points=${location.latitude},${location.longitude}'
           '&key=$_apiKey';
 
       final response = await _httpClient.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['snappedPoints'] != null) {
           return (data['snappedPoints'] as List)
               .map((point) => RoadInfo.fromApiResponse(point))
               .toList();
         }
       }
-      
+
       return null;
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error getting nearest roads: $e');
       return null;
@@ -334,35 +347,35 @@ class GoogleMapsService {
     DateTime? departureTime,
   }) async {
     try {
-      var url = '$_baseUrl/distancematrix/json'
+      var url =
+          '$_baseUrl/distancematrix/json'
           '?origins=${origin.latitude},${origin.longitude}'
           '&destinations=${destination.latitude},${destination.longitude}'
           '&mode=${travelMode.toString().toLowerCase()}'
           '&key=$_apiKey';
 
       if (departureTime != null) {
-        url += '&departure_time=${departureTime.millisecondsSinceEpoch ~/ 1000}';
+        url +=
+            '&departure_time=${departureTime.millisecondsSinceEpoch ~/ 1000}';
       }
 
       final response = await _httpClient.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
-        if (data['status'] == 'OK' && 
-            data['rows'].isNotEmpty && 
+
+        if (data['status'] == 'OK' &&
+            data['rows'].isNotEmpty &&
             data['rows'][0]['elements'].isNotEmpty) {
-          
           final element = data['rows'][0]['elements'][0];
-          
+
           if (element['status'] == 'OK' && element['duration'] != null) {
             return Duration(seconds: element['duration']['value']);
           }
         }
       }
-      
+
       return null;
-      
     } catch (e) {
       debugPrint('GoogleMapsService: Error getting travel time: $e');
       return null;
@@ -387,7 +400,8 @@ class GoogleMapsService {
     required bool avoidHighways,
     required bool optimizeWaypoints,
   }) {
-    var url = '$_baseUrl/directions/json'
+    var url =
+        '$_baseUrl/directions/json'
         '?origin=${origin.latitude},${origin.longitude}'
         '&destination=${destination.latitude},${destination.longitude}'
         '&mode=${travelMode.toString().toLowerCase()}'
@@ -397,7 +411,7 @@ class GoogleMapsService {
       final waypointsStr = waypoints
           .map((wp) => '${wp.latitude},${wp.longitude}')
           .join('|');
-      
+
       url += '&waypoints=';
       if (optimizeWaypoints) {
         url += 'optimize:true|';
@@ -423,10 +437,11 @@ class GoogleMapsService {
     bool avoidTolls,
     bool avoidHighways,
   ) {
-    final wayStr = waypoints?.map((w) => '${w.latitude},${w.longitude}').join('|') ?? '';
+    final wayStr =
+        waypoints?.map((w) => '${w.latitude},${w.longitude}').join('|') ?? '';
     return '${origin.latitude},${origin.longitude}->'
-           '${destination.latitude},${destination.longitude}|'
-           '$wayStr|$travelMode|$avoidTolls|$avoidHighways';
+        '${destination.latitude},${destination.longitude}|'
+        '$wayStr|$travelMode|$avoidTolls|$avoidHighways';
   }
 }
 
@@ -466,7 +481,7 @@ class DirectionsResult {
     final route = data['routes'][0];
     final leg = route['legs'][0];
     final polyline = route['overview_polyline']['points'];
-    
+
     return DirectionsResult(
       polylinePoints: _decodePolyline(polyline),
       encodedPolyline: polyline,
@@ -577,7 +592,7 @@ class GeocodeResult {
 
   factory GeocodeResult.fromApiResponse(Map<String, dynamic> data) {
     final components = data['address_components'] as List;
-    
+
     String streetNumber = '';
     String route = '';
     String locality = '';
@@ -587,7 +602,7 @@ class GeocodeResult {
 
     for (final component in components) {
       final types = component['types'] as List;
-      
+
       if (types.contains('street_number')) {
         streetNumber = component['long_name'];
       } else if (types.contains('route')) {
