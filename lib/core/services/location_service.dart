@@ -3,7 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:workmanager/workmanager.dart';
+// import 'package:workmanager/workmanager.dart'; // Commented out for web compatibility
 import '../models/location_model.dart';
 import '../models/trip_model.dart';
 import '../constants/app_colors.dart';
@@ -161,8 +161,10 @@ class LocationService extends ChangeNotifier {
         });
       }
 
-      // Cancel background task
-      await Workmanager().cancelAll();
+      // Cancel background task (only on mobile platforms)
+      if (!kIsWeb) {
+        // await Workmanager().cancelAll(); // Disabled for web compatibility
+      }
 
       _currentTripId = null;
       _locationHistory.clear();
@@ -244,20 +246,23 @@ class LocationService extends ChangeNotifier {
 
   Future<void> _registerBackgroundTask() async {
     try {
-      await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
-
-      await Workmanager().registerPeriodicTask(
-        "location_update_task",
-        "locationUpdate",
-        frequency: const Duration(minutes: 15),
-        constraints: Constraints(
-          networkType: NetworkType.connected,
-          requiresBatteryNotLow: false,
-          requiresCharging: false,
-          requiresDeviceIdle: false,
-          requiresStorageNotLow: false,
-        ),
-      );
+      // Background tasks are only supported on mobile platforms
+      if (!kIsWeb) {
+        // await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+        // await Workmanager().registerPeriodicTask(
+        //   "location_update_task",
+        //   "locationUpdate",
+        //   frequency: const Duration(minutes: 15),
+        //   constraints: Constraints(
+        //     networkType: NetworkType.connected,
+        //     requiresBatteryNotLow: false,
+        //     requiresCharging: false,
+        //     requiresDeviceIdle: false,
+        //     requiresStorageNotLow: false,
+        //   ),
+        // );
+        debugPrint('Background task registration disabled for web compatibility');
+      }
     } catch (e) {
       debugPrint('Error registering background task: $e');
     }
@@ -344,21 +349,21 @@ class LocationService extends ChangeNotifier {
   }
 }
 
-// Background task callback
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    try {
-      // Background location update logic
-      debugPrint('Background location update triggered');
-
-      // Get current location and save to Firebase
-      // This is a simplified version - you'd need to implement the full logic
-
-      return Future.value(true);
-    } catch (e) {
-      debugPrint('Background task error: $e');
-      return Future.value(false);
-    }
-  });
-}
+// Background task callback (disabled for web compatibility)
+// @pragma('vm:entry-point')
+// void callbackDispatcher() {
+//   Workmanager().executeTask((task, inputData) async {
+//     try {
+//       // Background location update logic
+//       debugPrint('Background location update triggered');
+//
+//       // Get current location and save to Firebase
+//       // This is a simplified version - you'd need to implement the full logic
+//
+//       return Future.value(true);
+//     } catch (e) {
+//       debugPrint('Background task error: $e');
+//       return Future.value(false);
+//     }
+//   });
+// }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_theme.dart';
 
 class CustomCard extends StatelessWidget {
   final Widget child;
@@ -179,13 +178,17 @@ class StatusChip extends StatelessWidget {
             Icon(icon, size: 16, color: color),
             const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              color: isSelected
-                  ? (isDark ? Colors.black : Colors.white)
-                  : color,
-              fontWeight: FontWeight.w500,
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(
+                color: isSelected
+                    ? (isDark ? Colors.black : Colors.white)
+                    : color,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -255,7 +258,13 @@ class CustomButton extends StatelessWidget {
         else if (icon != null)
           Icon(icon, size: 18),
         if ((icon != null && !isLoading) || isLoading) const SizedBox(width: 8),
-        Text(text),
+        Flexible(
+          child: Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
       ],
     );
 

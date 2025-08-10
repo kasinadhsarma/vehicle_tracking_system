@@ -1,9 +1,8 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../core/services/simple_auth_service.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../app.dart';
-import '../login_screen.dart';
 
 class AuthController extends GetxController {
   final SimpleAuthService _authService = Get.put(SimpleAuthService());
@@ -42,7 +41,7 @@ class AuthController extends GetxController {
     confirmPasswordController.dispose();
     nameController.dispose();
     phoneController.dispose();
-    super.onClose();
+    super.dispose();
   }
 
   void _handleAuthStateChange(bool isLoggedIn) {
@@ -72,17 +71,35 @@ class AuthController extends GetxController {
       );
 
       if (result.isSuccess) {
-        _showSuccessSnackbar('Login Successful', result.message);
+        Get.snackbar(
+          'Success',
+          result.message,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          icon: const Icon(Icons.check_circle, color: Colors.white),
+        );
         _clearForm();
-        // The AuthWrapper will automatically navigate to MainDashboard
-        // when isLoggedIn becomes true
+        // Navigate to Main Dashboard after successful login
+        Get.offAll(() => const MainDashboard());
       } else {
         errorMessage.value = result.message;
-        _showErrorSnackbar('Login Failed', result.message);
+        Get.snackbar(
+          'Login Failed',
+          result.message,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
       }
     } catch (e) {
       errorMessage.value = 'An unexpected error occurred';
-      _showErrorSnackbar('Error', 'An unexpected error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
     } finally {
       isLoading.value = false;
     }
@@ -104,17 +121,60 @@ class AuthController extends GetxController {
       );
 
       if (result.isSuccess) {
-        _showSuccessSnackbar('Registration Successful', result.message);
+        Get.snackbar(
+          'Success',
+          result.message,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          icon: const Icon(Icons.check_circle, color: Colors.white),
+        );
         _clearForm();
         // Navigate to Main Dashboard after successful registration
         Get.offAll(() => const MainDashboard());
       } else {
         errorMessage.value = result.message;
-        _showErrorSnackbar('Registration Failed', result.message);
+        Get.snackbar(
+          'Registration Failed',
+          result.message,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
       }
     } catch (e) {
       errorMessage.value = 'An unexpected error occurred';
-      _showErrorSnackbar('Error', 'An unexpected error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> logout() async {
+    try {
+      isLoading.value = true;
+      await _authService.logout();
+      
+      Get.snackbar(
+        'Logged Out',
+        'You have been successfully logged out.',
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+        icon: const Icon(Icons.logout, color: Colors.white),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to logout: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
     } finally {
       isLoading.value = false;
     }
@@ -122,7 +182,13 @@ class AuthController extends GetxController {
 
   Future<void> resetPassword() async {
     if (emailController.text.trim().isEmpty) {
-      _showErrorSnackbar('Error', 'Please enter your email address');
+      Get.snackbar(
+        'Error',
+        'Please enter your email address',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
       return;
     }
 
@@ -132,49 +198,33 @@ class AuthController extends GetxController {
       final result = await _authService.resetPassword(emailController.text.trim());
       
       if (result.isSuccess) {
-        _showSuccessSnackbar('Password Reset', result.message);
+        Get.snackbar(
+          'Email Sent',
+          result.message,
+          backgroundColor: Colors.blue,
+          colorText: Colors.white,
+          icon: const Icon(Icons.email, color: Colors.white),
+        );
       } else {
-        _showErrorSnackbar('Reset Failed', result.message);
+        Get.snackbar(
+          'Error',
+          result.message,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          icon: const Icon(Icons.error, color: Colors.white),
+        );
       }
     } catch (e) {
-      _showErrorSnackbar('Error', 'An unexpected error occurred: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to send reset email: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        icon: const Icon(Icons.error, color: Colors.white),
+      );
     } finally {
       isLoading.value = false;
     }
-  }
-
-  Future<void> signOut() async {
-    try {
-      isLoading.value = true;
-      await _authService.logout();
-      _clearForm();
-      Get.offAll(() => const LoginScreen());
-      _showSuccessSnackbar('Signed Out', 'You have been signed out successfully');
-    } catch (e) {
-      _showErrorSnackbar('Error', 'Failed to sign out: $e');
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  void _showSuccessSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      icon: const Icon(Icons.check_circle, color: Colors.white),
-    );
-  }
-
-  void _showErrorSnackbar(String title, String message) {
-    Get.snackbar(
-      title,
-      message,
-      backgroundColor: Colors.red,
-      colorText: Colors.white,
-      icon: const Icon(Icons.error, color: Colors.white),
-    );
   }
 
   void _clearForm() {
@@ -184,69 +234,13 @@ class AuthController extends GetxController {
     nameController.clear();
     phoneController.clear();
     errorMessage.value = '';
+    isPasswordVisible.value = false;
+    isConfirmPasswordVisible.value = false;
   }
 
-  void togglePasswordVisibility() {
-    isPasswordVisible.value = !isPasswordVisible.value;
-  }
-
-  void toggleConfirmPasswordVisibility() {
-    isConfirmPasswordVisible.value = !isConfirmPasswordVisible.value;
-  }
-
-  // Getters for user role checks
+  // Role checking helpers
   bool get isDriver => _authService.currentUser?.role == AppConstants.roleDriver;
   bool get isManager => _authService.currentUser?.role == AppConstants.roleManager;
   bool get isAdmin => _authService.currentUser?.role == AppConstants.roleAdmin;
-
-  // Validation methods
-  String? validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
-    }
-    if (!GetUtils.isEmail(value.trim())) {
-      return 'Please enter a valid email';
-    }
-    return null;
-  }
-
-  String? validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Password is required';
-    }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-    return null;
-  }
-
-  String? validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
-    }
-    if (value != passwordController.text) {
-      return 'Passwords do not match';
-    }
-    return null;
-  }
-
-  String? validateName(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Name is required';
-    }
-    if (value.trim().length < 2) {
-      return 'Name must be at least 2 characters';
-    }
-    return null;
-  }
-
-  String? validatePhone(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Phone number is required';
-    }
-    if (!GetUtils.isPhoneNumber(value.trim())) {
-      return 'Please enter a valid phone number';
-    }
-    return null;
-  }
+  bool get isAuthenticated => _authService.isLoggedIn;
 }

@@ -2,6 +2,18 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        gradlePluginPortal()
+        // Required for background_fetch and other plugins
+        maven {
+            url = uri("https://developer.huawei.com/repo/")
+        }
+        maven {
+            url = uri("https://www.jitpack.io")
+        }
+        // Additional repository for background_fetch plugin
+        maven {
+            url = uri("https://plugins.gradle.org/m2/")
+        }
     }
 }
 

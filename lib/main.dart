@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'app.dart';
+import 'core/services/tracking_service_factory.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +31,7 @@ void main() async {
     await _initializeServicesForDesktop();
   }
 
-  runApp(const VehicleTrackingApp());
+  runApp(VehicleTrackingApp());
 }
 
 Future<void> _initializeServices() async {
@@ -46,4 +47,7 @@ Future<void> _initializeServices() async {
 Future<void> _initializeServicesForDesktop() async {
   // Initialize local services for desktop MVP
   debugPrint('Desktop services initialized');
+  
+  // Initialize the tracking service factory
+  await TrackingServiceFactory.instance.initializeTrackingService();
 }

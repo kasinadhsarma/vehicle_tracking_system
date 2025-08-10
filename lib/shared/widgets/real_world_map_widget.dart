@@ -2,9 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../core/models/location_model.dart';
-import '../../core/services/real_time_tracking_service.dart';
-import '../../core/services/geofence_service.dart';
-import '../../core/services/driver_behavior_service.dart';
+import '../../core/services/tracking_service_factory.dart';
 
 /// Comprehensive real-world mapping widget
 /// Displays live vehicle tracking with geofences, routes, and behavior analysis
@@ -21,7 +19,7 @@ class RealWorldMapWidget extends StatefulWidget {
   final Function(LatLng)? onLocationTap;
 
   const RealWorldMapWidget({
-    Key? key,
+    super.key,
     this.vehicleId,
     this.driverId,
     this.showGeofences = true,
@@ -32,17 +30,13 @@ class RealWorldMapWidget extends StatefulWidget {
     this.initialCenter,
     this.onMapReady,
     this.onLocationTap,
-  }) : super(key: key);
+  });
 
   @override
   State<RealWorldMapWidget> createState() => _RealWorldMapWidgetState();
 }
 
 class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
-  // Services
-  final RealTimeTrackingService _trackingService = RealTimeTrackingService.instance;
-  final GeofenceService _geofenceService = GeofenceService.instance;
-
   // Google Maps controller
   GoogleMapController? _mapController;
   
@@ -53,16 +47,16 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
   final Set<Circle> _circles = {};
   
   // Streams
-  StreamSubscription<TrackingUpdate>? _trackingSubscription;
-  StreamSubscription<GeofenceEvent>? _geofenceSubscription;
-  StreamSubscription<DrivingEvent>? _behaviorSubscription;
-  StreamSubscription<LiveTrackingData>? _liveDataSubscription;
+  StreamSubscription? _trackingSubscription;
+  StreamSubscription? _geofenceSubscription;
+  StreamSubscription? _behaviorSubscription;
+  StreamSubscription? _liveDataSubscription;
   
   // Data
   LocationModel? _currentLocation;
   List<LocationModel> _routePoints = [];
-  List<Geofence> _geofences = [];
-  List<DrivingEvent> _behaviorEvents = [];
+  List<MockGeofence> _geofences = [];
+  final List<MockDrivingEvent> _behaviorEvents = [];
   
   // Map settings
   late LatLng _mapCenter;
@@ -86,73 +80,102 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
   }
 
   Future<void> _initializeMap() async {
-    // Load geofences if enabled
-    if (widget.showGeofences) {
-      await _loadGeofences();
-    }
-    
-    // Start listening to tracking updates
-    if (widget.vehicleId != null) {
-      _setupTrackingListeners();
+    try {
+      // Initialize tracking service for demo purposes
+      await TrackingServiceFactory.instance.initializeTrackingService();
+      
+      // Load mock geofences if enabled
+      if (widget.showGeofences) {
+        await _loadMockGeofences();
+      }
+      
+      // Start mock tracking
+      if (widget.vehicleId != null) {
+        _setupMockTrackingListeners();
+      }
+      
+      setState(() {});
+    } catch (e) {
+      debugPrint('Error initializing map: $e');
     }
   }
 
-  void _setupTrackingListeners() {
-    // Listen to real-time tracking updates
-    _trackingSubscription = _trackingService.trackingStream.listen((update) {
+  void _setupMockTrackingListeners() {
+    // Simulate vehicle movement
+    _trackingSubscription = Stream.periodic(
+      const Duration(seconds: 5),
+      (count) => _generateMockLocation(),
+    ).listen((location) {
       setState(() {
-        _currentLocation = update.location;
-        _routePoints.add(update.location);
+        _currentLocation = location;
+        _routePoints.add(location);
         
         // Keep route manageable
-        if (_routePoints.length > 1000) {
-          _routePoints = _routePoints.sublist(_routePoints.length - 500);
+        if (_routePoints.length > 100) {
+          _routePoints = _routePoints.sublist(_routePoints.length - 50);
         }
       });
       
-      _updateVehicleMarker(update.location);
+      _updateVehicleMarker(location);
       _updateRoutePolyline();
       
       if (_followVehicle) {
-        _centerMapOnLocation(update.location);
+        _centerMapOnLocation(location);
       }
     });
-
-    // Listen to geofence events
-    if (widget.showGeofences) {
-      _geofenceSubscription = _geofenceService.eventStream.listen((event) {
-        _showGeofenceEventPopup(event);
-      });
-    }
-
-    // Listen to behavior events (simplified for now)
-    if (widget.showBehaviorEvents) {
-      // Behavior events would be handled through a dedicated stream
-      // For now, we'll skip this to avoid type issues
-    }
-
-    // Listen to live tracking data
-    if (widget.vehicleId != null) {
-      _liveDataSubscription = _trackingService
-          .getLiveTrackingData(widget.vehicleId!)
-          .listen((liveData) {
-        if (liveData.isActive) {
-          setState(() {
-            _currentLocation = liveData.currentLocation;
-          });
-          _updateVehicleMarker(liveData.currentLocation);
-        }
-      });
-    }
   }
 
-  Future<void> _loadGeofences() async {
-    try {
-      _geofences = _geofenceService.activeGeofences;
-      _updateGeofenceOverlays();
-    } catch (e) {
-      debugPrint('Error loading geofences: $e');
-    }
+  LocationModel _generateMockLocation() {
+    final now = DateTime.now();
+    
+    // Create mock location near the center
+    final baseLat = _mapCenter.latitude;
+    final baseLng = _mapCenter.longitude;
+    
+    // Small random movement
+    final latOffset = (DateTime.now().millisecond % 100 - 50) * 0.0001;
+    final lngOffset = (DateTime.now().second % 100 - 50) * 0.0001;
+    
+    return LocationModel(
+      id: 'mock_${now.millisecondsSinceEpoch}',
+      userId: widget.driverId ?? 'user_001',
+      vehicleId: widget.vehicleId ?? 'DEMO-001',
+      driverId: widget.driverId ?? 'driver_001',
+      latitude: baseLat + latOffset,
+      longitude: baseLng + lngOffset,
+      speed: 25.0 + (now.second % 20), // Mock speed variation
+      heading: (now.second * 6).toDouble(), // Mock heading
+      accuracy: 5.0,
+      timestamp: now,
+    );
+  }
+
+  Future<void> _loadMockGeofences() async {
+    _geofences = [
+      MockGeofence(
+        id: 'safe_zone_1',
+        name: 'Safe Zone 1',
+        description: 'Primary safe zone',
+        type: MockGeofenceType.circular,
+        centerLatitude: _mapCenter.latitude + 0.002,
+        centerLongitude: _mapCenter.longitude + 0.002,
+        radius: 200.0,
+        isActive: true,
+        metadata: {'type': 'safe'},
+      ),
+      MockGeofence(
+        id: 'restricted_zone_1',
+        name: 'Restricted Zone',
+        description: 'No entry zone',
+        type: MockGeofenceType.circular,
+        centerLatitude: _mapCenter.latitude - 0.003,
+        centerLongitude: _mapCenter.longitude - 0.003,
+        radius: 150.0,
+        isActive: true,
+        metadata: {'type': 'restricted'},
+      ),
+    ];
+    _updateGeofenceOverlays();
   }
 
   void _updateVehicleMarker(LocationModel location) {
@@ -188,7 +211,7 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
   String _formatLocationInfo(LocationModel location) {
     final speed = location.speed?.toStringAsFixed(1) ?? '0.0';
     final time = '${location.timestamp.hour}:${location.timestamp.minute.toString().padLeft(2, '0')}';
-    return 'Speed: ${speed} km/h • $time';
+    return 'Speed: $speed km/h • $time';
   }
 
   void _updateRoutePolyline() {
@@ -213,7 +236,6 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
   Color _getRouteColor() {
     // Color code based on recent behavior events
     if (_behaviorEvents.isNotEmpty) {
-      // Since we can't access EventSeverity directly, use a simple color scheme
       return Colors.orange; // Warning color for any behavior events
     }
     return Colors.blue;
@@ -223,10 +245,9 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
     if (!widget.showGeofences) return;
 
     final newCircles = <Circle>{};
-    final newPolygons = <Polygon>{};
 
     for (final geofence in _geofences) {
-      if (geofence.type == GeofenceType.circular && 
+      if (geofence.type == MockGeofenceType.circular && 
           geofence.centerLatitude != null && 
           geofence.centerLongitude != null &&
           geofence.radius != null) {
@@ -235,41 +256,23 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
           circleId: CircleId(geofence.id),
           center: LatLng(geofence.centerLatitude!, geofence.centerLongitude!),
           radius: geofence.radius!,
-          fillColor: _getGeofenceColor(geofence).withOpacity(0.2),
+          fillColor: _getGeofenceColor(geofence).withValues(alpha: 0.2),
           strokeColor: _getGeofenceColor(geofence),
           strokeWidth: 2,
           onTap: () => _onGeofenceTap(geofence),
         );
         
         newCircles.add(circle);
-        
-      } else if (geofence.type == GeofenceType.polygon && 
-                 geofence.polygonVertices != null) {
-        
-        final polygon = Polygon(
-          polygonId: PolygonId(geofence.id),
-          points: geofence.polygonVertices!
-              .map((vertex) => LatLng(vertex.latitude, vertex.longitude))
-              .toList(),
-          fillColor: _getGeofenceColor(geofence).withOpacity(0.2),
-          strokeColor: _getGeofenceColor(geofence),
-          strokeWidth: 2,
-          onTap: () => _onGeofenceTap(geofence),
-        );
-        
-        newPolygons.add(polygon);
       }
     }
 
     setState(() {
       _circles.clear();
       _circles.addAll(newCircles);
-      _polygons.clear();
-      _polygons.addAll(newPolygons);
     });
   }
 
-  Color _getGeofenceColor(Geofence geofence) {
+  Color _getGeofenceColor(MockGeofence geofence) {
     // Color code geofences by type or metadata
     if (geofence.metadata?['type'] == 'restricted') {
       return Colors.red;
@@ -301,35 +304,10 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
     );
   }
 
-  void _onGeofenceTap(Geofence geofence) {
+  void _onGeofenceTap(MockGeofence geofence) {
     showDialog(
       context: context,
       builder: (context) => GeofenceInfoDialog(geofence: geofence),
-    );
-  }
-
-  void _showGeofenceEventPopup(GeofenceEvent event) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${event.eventType == GeofenceEventType.enter ? 'Entered' : 'Exited'} ${event.geofenceName}',
-        ),
-        backgroundColor: event.eventType == GeofenceEventType.enter 
-            ? Colors.green 
-            : Colors.orange,
-        duration: const Duration(seconds: 3),
-        action: SnackBarAction(
-          label: 'Details',
-          onPressed: () => _onGeofenceEventTap(event),
-        ),
-      ),
-    );
-  }
-
-  void _onGeofenceEventTap(GeofenceEvent event) {
-    showDialog(
-      context: context,
-      builder: (context) => GeofenceEventDialog(event: event),
     );
   }
 
@@ -415,7 +393,7 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -443,7 +421,7 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -575,25 +553,25 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
   }
 
   void _refreshMap() {
-    _loadGeofences();
+    _loadMockGeofences();
     if (_currentLocation != null) {
       _centerMapOnLocation(_currentLocation!);
     }
   }
 }
 
-// Supporting widgets
+// Supporting widgets and mock classes
 class VehicleInfoBottomSheet extends StatelessWidget {
   final LocationModel location;
   final String? vehicleId;
   final String? driverId;
 
   const VehicleInfoBottomSheet({
-    Key? key,
+    super.key,
     required this.location,
     this.vehicleId,
     this.driverId,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -638,9 +616,9 @@ class VehicleInfoBottomSheet extends StatelessWidget {
 }
 
 class GeofenceInfoDialog extends StatelessWidget {
-  final Geofence geofence;
+  final MockGeofence geofence;
 
-  const GeofenceInfoDialog({Key? key, required this.geofence}) : super(key: key);
+  const GeofenceInfoDialog({super.key, required this.geofence});
 
   @override
   Widget build(BuildContext context) {
@@ -669,14 +647,14 @@ class GeofenceInfoDialog extends StatelessWidget {
 }
 
 class GeofenceEventDialog extends StatelessWidget {
-  final GeofenceEvent event;
+  final MockGeofenceEvent event;
 
-  const GeofenceEventDialog({Key? key, required this.event}) : super(key: key);
+  const GeofenceEventDialog({super.key, required this.event});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Geofence Event'),
+      title: const Text('Geofence Event'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -695,4 +673,63 @@ class GeofenceEventDialog extends StatelessWidget {
       ],
     );
   }
+}
+
+// Mock classes for demo purposes
+class MockGeofence {
+  final String id;
+  final String name;
+  final String description;
+  final MockGeofenceType type;
+  final double? centerLatitude;
+  final double? centerLongitude;
+  final double? radius;
+  final bool isActive;
+  final Map<String, dynamic>? metadata;
+
+  MockGeofence({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.type,
+    this.centerLatitude,
+    this.centerLongitude,
+    this.radius,
+    required this.isActive,
+    this.metadata,
+  });
+}
+
+enum MockGeofenceType { circular, polygon }
+
+class MockGeofenceEvent {
+  final String id;
+  final String geofenceName;
+  final String? vehicleId;
+  final MockGeofenceEventType eventType;
+  final DateTime timestamp;
+
+  MockGeofenceEvent({
+    required this.id,
+    required this.geofenceName,
+    this.vehicleId,
+    required this.eventType,
+    required this.timestamp,
+  });
+}
+
+enum MockGeofenceEventType { enter, exit }
+
+class MockDrivingEvent {
+  final String id;
+  final String type;
+  final DateTime timestamp;
+  final Map<String, dynamic> data;
+
+  MockDrivingEvent({
+    required this.id,
+    required this.type,
+    required this.timestamp,
+    required this.data,
+  });
 }
