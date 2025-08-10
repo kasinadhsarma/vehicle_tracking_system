@@ -4,8 +4,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'core/controllers/theme_controller.dart';
 import 'shared/widgets/custom_widgets.dart';
 import 'shared/widgets/real_world_map_widget.dart';
+import 'shared/widgets/route_planning_widget.dart';
+import 'shared/widgets/route_planning_panel.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/real_time_tracking_service.dart';
+import 'core/services/directions_service.dart';
+import 'routes/app_routes.dart';
 
 class VehicleTrackingApp extends StatelessWidget {
   const VehicleTrackingApp({super.key});
@@ -21,6 +25,7 @@ class VehicleTrackingApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme,
         themeMode: themeController.themeMode,
         home: const SplashScreen(),
+        getPages: AppRoutes.pages,
         debugShowCheckedModeBanner: false,
       ),
     );
@@ -274,6 +279,30 @@ class _MainDashboardState extends State<MainDashboard> {
                           tooltip: themeController.themeName,
                         ),
                         const SizedBox(height: 8),
+                        IconButton(
+                          onPressed: () {
+                            Get.toNamed('/phone-auth');
+                          },
+                          icon: const Icon(Icons.phone_android),
+                          tooltip: 'Phone Authentication',
+                          color: Colors.green,
+                        ),
+                        const SizedBox(height: 8),
+                        IconButton(
+                          onPressed: () {
+                            Get.snackbar(
+                              'Booking',
+                              'Book a ride in Vadodara!',
+                              backgroundColor: Colors.blue,
+                              colorText: Colors.white,
+                              icon: const Icon(Icons.local_taxi, color: Colors.white),
+                            );
+                          },
+                          icon: const Icon(Icons.local_taxi),
+                          tooltip: 'Book Ride',
+                          color: Colors.blue,
+                        ),
+                        const SizedBox(height: 8),
                         Icon(
                           Icons.location_on,
                           size: 24,
@@ -311,13 +340,13 @@ class DashboardPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Good morning, Manager',
+                    'Good morning, Vadodara Manager',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    'Here\'s your fleet overview',
+                    'Your fleet status across Vadodara, Gujarat',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
@@ -390,6 +419,68 @@ class DashboardPage extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 24),
+
+          // Vadodara Booking Section
+          CustomCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.local_taxi,
+                      color: Colors.blue,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Book a Ride in Vadodara',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Quick auto/cab booking service for Vadodara city - Railway Station to Alkapuri, Sayajigunj to Makarpura and more!',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        // Navigate to phone auth first if not authenticated
+                        Get.toNamed('/phone-auth');
+                      },
+                      icon: const Icon(Icons.phone_android),
+                      label: const Text('Book Now'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        // Show a snackbar and inform user to use the Map tab
+                        Get.snackbar(
+                          'Live Map',
+                          'Use the Map tab in the navigation rail to view live tracking',
+                          backgroundColor: Colors.blue,
+                          colorText: Colors.white,
+                          icon: const Icon(Icons.map, color: Colors.white),
+                        );
+                      },
+                      icon: const Icon(Icons.map),
+                      label: const Text('View Live Map'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 32),
 
@@ -837,45 +928,50 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   final RealTimeTrackingService _trackingService =
       RealTimeTrackingService.instance;
+  final DirectionsService _directionsService = DirectionsService.instance;
 
   bool _isInitialized = false;
   bool _isTracking = false;
   FleetOverview? _fleetOverview;
+  DirectionsResult? _currentRoute;
+  LatLng? _selectedOrigin;
+  LatLng? _selectedDestination;
+  bool _showRoutePanel = false;
 
-  // Mock vehicle data for demonstration
+  // Mock vehicle data for demonstration - Vadodara locations
   final List<Map<String, dynamic>> _vehicles = [
     {
-      'id': 'VH-001',
-      'lat': 40.7128,
-      'lng': -74.0060,
+      'id': 'GJ-06-VH-001',
+      'lat': 22.3072, // Vadodara Railway Station
+      'lng': 73.1812,
       'status': 'Active',
       'driverId': 'driver_001',
     },
     {
-      'id': 'VH-002',
-      'lat': 40.7589,
-      'lng': -73.9851,
+      'id': 'GJ-06-VH-002', 
+      'lat': 22.3511, // MS University
+      'lng': 73.1350,
       'status': 'Idle',
       'driverId': 'driver_002',
     },
     {
-      'id': 'VH-003',
-      'lat': 40.7282,
-      'lng': -73.7949,
+      'id': 'GJ-06-VH-003',
+      'lat': 22.3178, // Sayajigunj
+      'lng': 73.1562,
       'status': 'Active',
       'driverId': 'driver_003',
     },
     {
-      'id': 'VH-004',
-      'lat': 40.6892,
-      'lng': -74.0445,
+      'id': 'GJ-06-VH-004',
+      'lat': 22.2587, // Makarpura
+      'lng': 73.2137,
       'status': 'Offline',
       'driverId': 'driver_004',
     },
     {
-      'id': 'VH-005',
-      'lat': 40.7505,
-      'lng': -73.9934,
+      'id': 'GJ-06-VH-005',
+      'lat': 22.3264, // Alkapuri
+      'lng': 73.1673,
       'status': 'Active',
       'driverId': 'driver_005',
     },
@@ -894,7 +990,7 @@ class _MapPageState extends State<MapPage> {
   Future<void> _initializeServices() async {
     try {
       final success = await _trackingService.initialize();
-      if (success) {
+      if (success && mounted) {
         setState(() {
           _isInitialized = true;
         });
@@ -907,9 +1003,11 @@ class _MapPageState extends State<MapPage> {
   Future<void> _loadFleetOverview() async {
     try {
       final overview = await _trackingService.getFleetOverview();
-      setState(() {
-        _fleetOverview = overview;
-      });
+      if (mounted) {
+        setState(() {
+          _fleetOverview = overview;
+        });
+      }
     } catch (e) {
       debugPrint('Error loading fleet overview: $e');
     }
@@ -925,7 +1023,7 @@ class _MapPageState extends State<MapPage> {
         mode: TrackingMode.normal,
       );
 
-      if (success) {
+      if (success && mounted) {
         setState(() {
           _isTracking = true;
           _selectedVehicleId = vehicleId;
@@ -952,11 +1050,13 @@ class _MapPageState extends State<MapPage> {
   Future<void> _stopTracking() async {
     try {
       await _trackingService.stopTracking();
-      setState(() {
-        _isTracking = false;
-        _selectedVehicleId = null;
-        _selectedDriverId = null;
-      });
+      if (mounted) {
+        setState(() {
+          _isTracking = false;
+          _selectedVehicleId = null;
+          _selectedDriverId = null;
+        });
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1077,21 +1177,56 @@ class _MapPageState extends State<MapPage> {
   }
 
   Widget _buildAdvancedMap() {
-    return RealWorldMapWidget(
-      vehicleId: _selectedVehicleId,
-      driverId: _selectedDriverId,
-      showGeofences: true,
-      showRoutes: true,
-      showBehaviorEvents: true,
-      mapType: MapType.normal,
-      initialZoom: 12.0,
-      initialCenter: const LatLng(40.7128, -74.0060), // New York
-      onMapReady: () {
-        debugPrint('Advanced map ready');
-      },
-      onLocationTap: (position) {
-        _showLocationOptions(position);
-      },
+    return Stack(
+      children: [
+        RealWorldMapWidget(
+          vehicleId: _selectedVehicleId,
+          driverId: _selectedDriverId,
+          showGeofences: true,
+          showRoutes: true,
+          showBehaviorEvents: true,
+          mapType: MapType.normal,
+          initialZoom: 12.0,
+          initialCenter: const LatLng(22.3072, 73.1812), // Vadodara Railway Station
+          onMapReady: () {
+            debugPrint('Advanced map ready - Centered on Vadodara');
+          },
+          onLocationTap: (position) {
+            _showLocationOptions(position);
+          },
+        ),
+        // Route Planning Panel
+        if (_showRoutePanel)
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: RoutePlanningPanel(
+              currentLocation: const LatLng(22.3072, 73.1812),
+              onRouteSelected: (routePoints) {
+                // Handle route selection - this would update the map with the route
+                debugPrint('Route selected with ${routePoints.length} points');
+              },
+            ),
+          ),
+        // Toggle Route Panel Button
+        Positioned(
+          top: 16,
+          left: 16,
+          child: FloatingActionButton(
+            mini: true,
+            heroTag: "route_planning",
+            onPressed: () {
+              setState(() {
+                _showRoutePanel = !_showRoutePanel;
+              });
+            },
+            backgroundColor: _showRoutePanel ? Colors.blue : Colors.white,
+            foregroundColor: _showRoutePanel ? Colors.white : Colors.blue,
+            child: const Icon(Icons.directions),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1173,7 +1308,7 @@ class _MapPageState extends State<MapPage> {
                       subtitle: Text(
                         'Status: ${vehicle['status']}\n'
                         'Driver: ${vehicle['driverId']}\n'
-                        'Location: ${vehicle['lat'].toStringAsFixed(4)}, ${vehicle['lng'].toStringAsFixed(4)}',
+                        'Location: ${_getVadodaraLocationName(vehicle['lat'], vehicle['lng'])}',
                       ),
                       trailing: isOffline
                           ? const Icon(Icons.block, color: Colors.red)
@@ -1325,6 +1460,36 @@ class _MapPageState extends State<MapPage> {
         ],
       ),
     );
+  }
+
+  /// Helper method to get Vadodara location names from coordinates
+  String _getVadodaraLocationName(double lat, double lng) {
+    // Map coordinates to Vadodara location names
+    if (lat == 22.3072 && lng == 73.1812) return 'Vadodara Railway Station';
+    if (lat == 22.3511 && lng == 73.1350) return 'MS University';
+    if (lat == 22.3178 && lng == 73.1562) return 'Sayajigunj';
+    if (lat == 22.2587 && lng == 73.2137) return 'Makarpura';
+    if (lat == 22.3264 && lng == 73.1673) return 'Alkapuri';
+    
+    // Fallback to area names based on approximate coordinates
+    if (lat >= 22.30 && lat <= 22.35 && lng >= 73.10 && lng <= 73.20) {
+      return 'Central Vadodara';
+    } else if (lat >= 22.25 && lat <= 22.30 && lng >= 73.15 && lng <= 73.25) {
+      return 'Makarpura Industrial Area';
+    } else if (lat >= 22.32 && lat <= 22.37 && lng >= 73.15 && lng <= 73.22) {
+      return 'Gotri Area';
+    }
+    
+    return 'Vadodara, Gujarat';
+  }
+
+  @override
+  void dispose() {
+    // Stop tracking service and clean up resources
+    if (_isTracking) {
+      _trackingService.stopTracking();
+    }
+    super.dispose();
   }
 }
 

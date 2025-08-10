@@ -45,5 +45,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- Google Maps API Key -->
+	<key>GoogleMapsAPIKey</key>
+	<string>AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8</string>
+	<!-- Location permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs location access to track vehicles and provide navigation services.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs location access to track vehicles in the background for real-time monitoring.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs location access to track vehicles in the background for real-time monitoring.</string>
 </dict>
 </plist>

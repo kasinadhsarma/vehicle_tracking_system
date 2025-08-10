@@ -12,11 +12,14 @@ class AuthService extends ChangeNotifier {
   User? _currentUser;
   UserModel? _currentUserModel;
   bool _isLoading = false;
+  String? _verificationId;
+  int? _resendToken;
 
   User? get currentUser => _currentUser;
   UserModel? get currentUserModel => _currentUserModel;
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _currentUser != null;
+  String? get verificationId => _verificationId;
 
   AuthService() {
     _initializeAuth();
@@ -222,6 +225,249 @@ class AuthService extends ChangeNotifier {
       throw _handleAuthException(e);
     } finally {
       _setLoading(false);
+    }
+  }
+
+  // Phone Authentication Methods
+  Future<void> verifyPhoneNumber({
+    required String phoneNumber,
+    required Function(PhoneAuthCredential) verificationCompleted,
+    required Function(FirebaseAuthException) verificationFailed,
+    required Function(String, int?) codeSent,
+    required Function(String) codeAutoRetrievalTimeout,
+  }) async {
+    try {
+      _setLoading(true);
+      
+      // Format phone number for India (+91)
+      String formattedPhone = phoneNumber;
+      if (!phoneNumber.startsWith('+')) {
+        if (phoneNumber.startsWith('91')) {
+          formattedPhone = '+$phoneNumber';
+        } else if (phoneNumber.length == 10) {
+          formattedPhone = '+91$phoneNumber';
+        } else {
+          formattedPhone = '+91$phoneNumber';
+        }
+      }
+      
+      await _auth.verifyPhoneNumber(
+        phoneNumber: formattedPhone,
+        verificationCompleted: verificationCompleted,
+        verificationFailed: verificationFailed,
+        codeSent: (String verificationId, int? resendToken) {
+          _verificationId = verificationId;
+          _resendToken = resendToken;
+          codeSent(verificationId, resendToken);
+        },
+        codeAutoRetrievalTimeout: codeAutoRetrievalTimeout,
+        timeout: const Duration(seconds: 60),
+        forceResendingToken: _resendToken,
+      );
+    } catch (e) {
+      debugPrint('Error verifying phone number: $e');
+      throw Exception('Failed to verify phone number');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<UserCredential?> signInWithPhoneNumber({
+    required String smsCode,
+    String? verificationId,
+  }) async {
+    try {
+      _setLoading(true);
+      
+      String vidToUse = verificationId ?? _verificationId ?? '';
+      if (vidToUse.isEmpty) {
+        throw Exception('Verification ID not found. Please request OTP again.');
+      }
+
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: vidToUse,
+        smsCode: smsCode,
+      );
+
+      UserCredential result = await _auth.signInWithCredential(credential);
+      
+      // Check if user exists in Firestore, if not create a new user record
+      if (result.user != null) {
+        await _checkAndCreateUserRecord(result.user!);
+      }
+      
+      return result;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<UserCredential?> registerWithPhoneNumber({
+    required String smsCode,
+    required String name,
+    required String role,
+    String? email,
+    String? organizationId,
+    String? verificationId,
+  }) async {
+    try {
+      _setLoading(true);
+      
+      String vidToUse = verificationId ?? _verificationId ?? '';
+      if (vidToUse.isEmpty) {
+        throw Exception('Verification ID not found. Please request OTP again.');
+      }
+
+      PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: vidToUse,
+        smsCode: smsCode,
+      );
+
+      UserCredential result = await _auth.signInWithCredential(credential);
+      
+      if (result.user != null) {
+        // Create user record in Firestore
+        UserModel userModel = UserModel(
+          id: result.user!.uid,
+          email: email ?? '',
+          name: name,
+          phone: result.user!.phoneNumber ?? '',
+          role: role,
+          organizationId: organizationId,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await _firestore
+            .collection(AppConstants.usersCollection)
+            .doc(result.user!.uid)
+            .set(userModel.toMap());
+
+        // Update display name
+        await result.user!.updateDisplayName(name);
+      }
+      
+      return result;
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _checkAndCreateUserRecord(User user) async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection(AppConstants.usersCollection)
+          .doc(user.uid)
+          .get();
+
+      if (!doc.exists) {
+        // Create a default user record for phone auth users
+        UserModel userModel = UserModel(
+          id: user.uid,
+          email: user.email ?? '',
+          name: user.displayName ?? 'User',
+          phone: user.phoneNumber ?? '',
+          role: AppConstants.roleConsumer, // Default role
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
+        await _firestore
+            .collection(AppConstants.usersCollection)
+            .doc(user.uid)
+            .set(userModel.toMap());
+      }
+    } catch (e) {
+      debugPrint('Error checking/creating user record: $e');
+    }
+  }
+
+  // Vadodara-specific location services
+  Future<bool> isInVadodara(double latitude, double longitude) async {
+    // Vadodara city bounds (approximate)
+    const double vadodaraMinLat = 22.2500;
+    const double vadodaraMaxLat = 22.3500;
+    const double vadodaraMinLng = 73.1000;
+    const double vadodaraMaxLng = 73.2500;
+    
+    return latitude >= vadodaraMinLat && 
+           latitude <= vadodaraMaxLat &&
+           longitude >= vadodaraMinLng && 
+           longitude <= vadodaraMaxLng;
+  }
+
+  /// Register vehicle with phone number
+  Future<bool> registerVehicleWithPhone({
+    required String phoneNumber,
+    required String vehicleNumber,
+    required String driverName,
+    required String vehicleType,
+    String? licenseNumber,
+  }) async {
+    try {
+      _setLoading(true);
+      
+      if (_currentUser == null) {
+        throw Exception('User must be logged in to register vehicle');
+      }
+
+      // Format vehicle number for Gujarat
+      String formattedVehicleNumber = vehicleNumber.toUpperCase();
+      if (!formattedVehicleNumber.startsWith('GJ-')) {
+        formattedVehicleNumber = 'GJ-06-$formattedVehicleNumber';
+      }
+
+      // Create vehicle record in Firestore
+      final vehicleData = {
+        'vehicleNumber': formattedVehicleNumber,
+        'driverName': driverName,
+        'driverPhone': phoneNumber,
+        'vehicleType': vehicleType,
+        'licenseNumber': licenseNumber,
+        'ownerId': _currentUser!.uid,
+        'isActive': true,
+        'registeredAt': Timestamp.fromDate(DateTime.now()),
+        'lastLocation': null,
+        'status': 'offline',
+        'operatingArea': 'Vadodara, Gujarat',
+      };
+
+      await _firestore
+          .collection('vehicles')
+          .doc(formattedVehicleNumber)
+          .set(vehicleData);
+
+      debugPrint('Vehicle registered: $formattedVehicleNumber');
+      return true;
+    } catch (e) {
+      debugPrint('Error registering vehicle: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Get user's registered vehicles
+  Future<List<Map<String, dynamic>>> getUserVehicles() async {
+    try {
+      if (_currentUser == null) return [];
+
+      final snapshot = await _firestore
+          .collection('vehicles')
+          .where('ownerId', isEqualTo: _currentUser!.uid)
+          .get();
+
+      return snapshot.docs.map((doc) => {
+        'id': doc.id,
+        ...doc.data(),
+      }).toList();
+    } catch (e) {
+      debugPrint('Error getting user vehicles: $e');
+      return [];
     }
   }
 

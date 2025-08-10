@@ -21,6 +21,32 @@ class TripModel {
   final Map<String, dynamic>? tripStats;
   final String? notes;
 
+  // Additional computed properties for PDF generation
+  double get maxSpeed {
+    if (tripStats == null) return 0.0;
+    return (tripStats!['maxSpeed'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  double get averageSpeed {
+    if (tripStats == null || totalDuration == null || totalDuration == 0) return 0.0;
+    final distance = totalDistance ?? 0.0;
+    final durationHours = totalDuration! / 3600; // Convert seconds to hours
+    return durationHours > 0 ? distance / durationHours : 0.0;
+  }
+
+  double get fuelEfficiency {
+    if (tripStats == null) return 15.0; // Default fuel efficiency
+    return (tripStats!['fuelEfficiency'] as num?)?.toDouble() ?? 15.0;
+  }
+
+  List<LocationModel> get route => waypoints;
+
+  String? get startLocationString => startLocation?.address ?? 
+      '${startLocation?.latitude.toStringAsFixed(4)}, ${startLocation?.longitude.toStringAsFixed(4)}';
+
+  String? get endLocationString => endLocation?.address ?? 
+      '${endLocation?.latitude.toStringAsFixed(4)}, ${endLocation?.longitude.toStringAsFixed(4)}';
+
   TripModel({
     required this.id,
     required this.userId,

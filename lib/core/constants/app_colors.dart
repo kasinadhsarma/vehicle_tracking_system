@@ -56,6 +56,11 @@ class AppConstants {
   static const int connectionTimeout = 30000;
   static const int receiveTimeout = 30000;
 
+  // Google API Configuration
+  static const String googleMapsApiKey = 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8';
+  static const String googlePlacesApiKey = 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8';
+  static const String googleDirectionsApiKey = 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8';
+
   // Location Settings
   static const double locationAccuracy = 10.0;
   static const int locationUpdateInterval = 5000; // milliseconds

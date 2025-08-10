@@ -1,11 +1,17 @@
 import 'package:get/get.dart';
 import '../features/auth/login_screen.dart';
+import '../features/auth/phone_auth_screen.dart';
+import '../features/auth/otp_verification_screen.dart';
+import '../features/auth/user_registration_screen.dart';
 import '../app.dart';
 
 class AppRoutes {
   // Route names
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String phoneAuth = '/phone-auth';
+  static const String otpVerification = '/otp-verification';
+  static const String userRegistration = '/user-registration';
   static const String register = '/register';
   static const String roleSelector = '/role-selector';
   static const String mainDashboard = '/main-dashboard';
@@ -18,6 +24,7 @@ class AppRoutes {
   static const String geofenceEditor = '/geofence-editor';
   static const String alerts = '/alerts';
   static const String reports = '/reports';
+  static const String booking = '/booking';
 
   // Route pages
   static List<GetPage> routes = [
@@ -33,8 +40,39 @@ class AppRoutes {
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      name: phoneAuth,
+      page: () => const PhoneAuthScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: otpVerification,
+      page: () {
+        final args = Get.arguments as Map<String, dynamic>? ?? {};
+        return OTPVerificationScreen(
+          phoneNumber: args['phoneNumber'] ?? '',
+          verificationId: args['verificationId'] ?? '',
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: userRegistration,
+      page: () {
+        final args = Get.arguments as Map<String, dynamic>? ?? {};
+        return UserRegistrationScreen(
+          phoneNumber: args['phoneNumber'] ?? '',
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
       name: mainDashboard,
       page: () => const MainDashboard(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: mapOverview,
+      page: () => const MapPage(),
       transition: Transition.rightToLeft,
     ),
     // Note: Additional routes can be added here when the corresponding screens are implemented
@@ -97,4 +135,7 @@ class AppRoutes {
     //   transition: Transition.rightToLeft,
     // ),
   ];
+
+  // Convenience getter for pages
+  static List<GetPage> get pages => routes;
 }

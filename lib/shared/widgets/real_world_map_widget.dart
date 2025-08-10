@@ -65,7 +65,7 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
   @override
   void initState() {
     super.initState();
-    _mapCenter = widget.initialCenter ?? const LatLng(37.7749, -122.4194); // Default to San Francisco
+    _mapCenter = widget.initialCenter ?? const LatLng(22.3072, 73.1812); // Default to Vadodara Railway Station
     _initializeMap();
   }
 
@@ -75,7 +75,16 @@ class _RealWorldMapWidgetState extends State<RealWorldMapWidget> {
     _geofenceSubscription?.cancel();
     _behaviorSubscription?.cancel();
     _liveDataSubscription?.cancel();
-    _mapController?.dispose();
+    
+    // Only dispose map controller if it's been initialized
+    if (_mapController != null) {
+      try {
+        _mapController!.dispose();
+      } catch (e) {
+        debugPrint('Error disposing map controller: $e');
+      }
+    }
+    
     super.dispose();
   }
 

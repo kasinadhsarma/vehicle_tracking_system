@@ -16,7 +16,7 @@ class GoogleMapsService {
   // API Configuration
   static const String _baseUrl = 'https://maps.googleapis.com/maps/api';
   static const String _apiKey =
-      'AIzaSyD5F_5z_paVTMWWoa9Of2tVAE1sCEtR6pM'; // Replace with actual key
+      'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8'; // Updated API key
 
   // Cache for API responses
   final Map<String, dynamic> _geocodeCache = {};
