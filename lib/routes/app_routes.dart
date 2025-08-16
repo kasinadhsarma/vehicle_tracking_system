@@ -1,9 +1,10 @@
 import 'package:get/get.dart';
-import '../features/auth/login_screen.dart';
 import '../features/auth/phone_auth_screen.dart';
 import '../features/auth/otp_verification_screen.dart';
 import '../features/auth/user_registration_screen.dart';
-import '../app.dart';
+import '../features/reports/reports_screen.dart';
+import '../features/dashboard/main_dashboard.dart';
+import '../features/dashboard/full_screen_map_view.dart';
 
 class AppRoutes {
   // Route names
@@ -31,12 +32,12 @@ class AppRoutes {
     // Splash and Auth
     GetPage(
       name: splash,
-      page: () => const SplashScreen(),
+      page: () => const PhoneAuthScreen(),
       transition: Transition.fadeIn,
     ),
     GetPage(
       name: login,
-      page: () => const LoginScreen(),
+      page: () => const PhoneAuthScreen(),
       transition: Transition.rightToLeft,
     ),
     GetPage(
@@ -72,7 +73,12 @@ class AppRoutes {
     ),
     GetPage(
       name: mapOverview,
-      page: () => const MapPage(),
+      page: () => const FullScreenMapView(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: reports,
+      page: () => const ReportsScreen(),
       transition: Transition.rightToLeft,
     ),
     // Note: Additional routes can be added here when the corresponding screens are implemented

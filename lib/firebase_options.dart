@@ -36,7 +36,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCHGKlQgQkm9p3Zm7xJjO3pFYC8-XdUx_s',
+    apiKey: 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8',
     appId: '1:372855430234:web:8f2e2f3c4a5b6789012345',
     messagingSenderId: '372855430234',
     projectId: 'vehicle-tracking-system-f4934',
@@ -46,7 +46,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCHGKlQgQkm9p3Zm7xJjO3pFYC8-XdUx_s',
+    apiKey: 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8',
     appId: '1:372855430234:android:8f2e2f3c4a5b6789012345',
     messagingSenderId: '372855430234',
     projectId: 'vehicle-tracking-system-f4934',
@@ -54,7 +54,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCHGKlQgQkm9p3Zm7xJjO3pFYC8-XdUx_s',
+    apiKey: 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8',
     appId: '1:372855430234:ios:8f2e2f3c4a5b6789012345',
     messagingSenderId: '372855430234',
     projectId: 'vehicle-tracking-system-f4934',
@@ -63,7 +63,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCHGKlQgQkm9p3Zm7xJjO3pFYC8-XdUx_s',
+    apiKey: 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8',
     appId: '1:372855430234:macos:8f2e2f3c4a5b6789012345',
     messagingSenderId: '372855430234',
     projectId: 'vehicle-tracking-system-f4934',
@@ -72,7 +72,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyAZ9-Yp3hZwJ6rFJ5yx3Gw3Y8Kb0C8zJ0o',
+    apiKey: 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8',
     appId: '1:123456789012:web:abc123def456ghi789',
     messagingSenderId: '123456789012',
     projectId: 'vehicle-tracking-system-f4934',
@@ -81,7 +81,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
-    apiKey: 'AIzaSyAZ9-Yp3hZwJ6rFJ5yx3Gw3Y8Kb0C8zJ0o',
+    apiKey: 'AIzaSyANV1A4ONRj7u-Ys9lt2MKNPI364lhjOM8',
     appId: '1:123456789012:web:abc123def456ghi789',
     messagingSenderId: '123456789012',
     projectId: 'vehicle-tracking-system-f4934',

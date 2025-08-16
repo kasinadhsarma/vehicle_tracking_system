@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../core/services/auth_service.dart';
+import '../../core/constants/app_colors.dart';
 import 'user_registration_screen.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
@@ -115,34 +115,21 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
     setState(() => _isLoading = true);
 
     try {
-      // Demo mode for web - accept any 6-digit OTP
-      if (kIsWeb && widget.verificationId == 'demo_verification_id') {
-        // Simulate verification delay
-        await Future.delayed(const Duration(seconds: 1));
-        
-        if (mounted) {
-          _showSuccess('Demo OTP verified successfully!');
-          // Navigate to dashboard for demo
-          Get.offAllNamed('/dashboard');
-        }
-      } else {
-        // Real Firebase Auth verification
-        final authService = context.read<AuthService>();
-        
-        final userCredential = await authService.signInWithPhoneNumber(
-          smsCode: _otpCode,
-          verificationId: widget.verificationId,
-        );
+      final authService = context.read<AuthService>();
+      
+      final userCredential = await authService.signInWithPhoneNumber(
+        smsCode: _otpCode,
+        verificationId: widget.verificationId,
+      );
 
-        if (userCredential != null && mounted) {
-          // Check if this is a new user who needs to complete registration
-          if (userCredential.additionalUserInfo?.isNewUser == true) {
-            Get.off(() => UserRegistrationScreen(phoneNumber: widget.phoneNumber));
-          } else {
-            // Existing user, go to dashboard
-            _showSuccess('Welcome back!');
-            Get.offAllNamed('/dashboard');
-          }
+      if (userCredential != null && mounted) {
+        // Check if this is a new user who needs to complete registration
+        if (userCredential.additionalUserInfo?.isNewUser == true) {
+          Get.off(() => UserRegistrationScreen(phoneNumber: widget.phoneNumber));
+        } else {
+          // Existing user, go to dashboard
+          _showSuccess('Welcome back!');
+          Get.offAllNamed('/dashboard');
         }
       }
     } catch (e) {
@@ -201,9 +188,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
             children: [
               const Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(message),
-              ),
+              Text(message),
             ],
           ),
           backgroundColor: Colors.red,
@@ -222,9 +207,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
             children: [
               const Icon(Icons.check_circle_outline, color: Colors.white),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(message),
-              ),
+              Text(message),
             ],
           ),
           backgroundColor: Colors.green,
