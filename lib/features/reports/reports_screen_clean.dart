@@ -92,7 +92,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             children: [
               Expanded(child: _buildStatCard('Total Trips', '47', '🚗', Colors.blue)),
               const SizedBox(width: 15),
-              Expanded(child: _buildStatCard('Distance', '1,234 km', '📍', Colors.green)),
+              Expanded(child: _buildStatCard('Distance', '1,234 km', '📍', const Color(0xFF7C4DFF))), // Changed to purple
             ],
           ),
           const SizedBox(height: 15),
@@ -530,7 +530,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ PDF Report Generated Successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: Color(0xFF7C4DFF), // Changed to purple
           ),
         );
       }

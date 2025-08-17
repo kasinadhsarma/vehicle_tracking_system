@@ -117,7 +117,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
               ),
             ],
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF6C5CE7),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -248,12 +248,12 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+              colors: [Color(0xFF6C5CE7), Color(0xFF5F4FCF)],
             ),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4CAF50).withOpacity(0.3),
+                color: const Color(0xFF6C5CE7).withOpacity(0.3),
                 spreadRadius: 2,
                 blurRadius: 10,
                 offset: const Offset(0, 4),
@@ -385,7 +385,7 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Color(0xFF4CAF50), width: 2),
+                borderSide: const BorderSide(color: Color(0xFF6C5CE7), width: 2),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -416,10 +416,10 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _sendOTP,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4CAF50),
+          backgroundColor: const Color(0xFF6C5CE7),
           foregroundColor: Colors.white,
           elevation: 4,
-          shadowColor: const Color(0xFF4CAF50).withOpacity(0.3),
+          shadowColor: const Color(0xFF6C5CE7).withOpacity(0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -518,12 +518,12 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF4CAF50).withOpacity(0.1),
+            color: const Color(0xFF6C5CE7).withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             icon,
-            color: const Color(0xFF4CAF50),
+            color: const Color(0xFF6C5CE7),
             size: 20,
           ),
         ),

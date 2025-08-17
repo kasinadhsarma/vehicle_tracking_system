@@ -199,7 +199,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: const Color(0xFF6C5CE7),
       ),
     );
   }

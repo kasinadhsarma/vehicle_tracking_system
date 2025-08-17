@@ -210,7 +210,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
               Text(message),
             ],
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF6C5CE7),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -327,12 +327,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF4CAF50), Color(0xFF45A049)],
+              colors: [Color(0xFF6C5CE7), Color(0xFF5F4FCF)],
             ),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4CAF50).withOpacity(0.3),
+                color: const Color(0xFF6C5CE7).withOpacity(0.3),
                 spreadRadius: 2,
                 blurRadius: 10,
                 offset: const Offset(0, 4),

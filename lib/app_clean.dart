@@ -524,7 +524,7 @@ class DashboardPage extends StatelessWidget {
                   '48',
                   '8 on route',
                   Icons.directions_car,
-                  Colors.green,
+                  const Color(0xFF7C4DFF), // Changed to purple
                   true,
                   '5%',
                 ),
@@ -613,7 +613,7 @@ class DashboardPage extends StatelessWidget {
                                       context,
                                       'Active',
                                       48,
-                                      Colors.green,
+                                      const Color(0xFF7C4DFF), // Changed to purple
                                     ),
                                     const SizedBox(height: 12),
                                     _buildStatusChip(
@@ -678,7 +678,7 @@ class DashboardPage extends StatelessWidget {
                                 'vehicle': 'TRK-001',
                                 'activity': 'Route completed',
                                 'time': '2 min ago',
-                                'color': Colors.green,
+                                'color': const Color(0xFF7C4DFF), // Changed to purple
                               },
                               {
                                 'vehicle': 'VAN-234',
@@ -696,7 +696,7 @@ class DashboardPage extends StatelessWidget {
                                 'vehicle': 'VAN-112',
                                 'activity': 'Delivery completed',
                                 'time': '2 hours ago',
-                                'color': Colors.green,
+                                'color': const Color(0xFF7C4DFF), // Changed to purple
                               },
                               {
                                 'vehicle': 'TRK-045',
@@ -890,7 +890,7 @@ class DashboardPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: isUp
-                        ? Colors.green.withOpacity(0.1)
+                        ? const Color(0xFF7C4DFF).withOpacity(0.1) // Changed to purple
                         : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -900,7 +900,7 @@ class DashboardPage extends StatelessWidget {
                       Icon(
                         isUp ? Icons.trending_up : Icons.trending_down,
                         size: 16,
-                        color: isUp ? Colors.green : Colors.red,
+                        color: isUp ? const Color(0xFF7C4DFF) : Colors.red, // Changed to purple
                       ),
                       const SizedBox(width: 4),
                       Flexible(
@@ -909,7 +909,7 @@ class DashboardPage extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                           style: TextStyle(
-                            color: isUp ? Colors.green : Colors.red,
+                            color: isUp ? const Color(0xFF7C4DFF) : Colors.red, // Changed to purple
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -995,7 +995,7 @@ class DashboardPage extends StatelessWidget {
             height: 8,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isOnline ? Colors.green : Colors.red,
+              color: isOnline ? const Color(0xFF7C4DFF) : Colors.red, // Changed to purple
             ),
           ),
           const SizedBox(width: 8),
@@ -1005,7 +1005,7 @@ class DashboardPage extends StatelessWidget {
           Text(
             isOnline ? 'Online' : 'Offline',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: isOnline ? Colors.green : Colors.red,
+              color: isOnline ? const Color(0xFF7C4DFF) : Colors.red, // Changed to purple
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -1109,7 +1109,7 @@ class _ReportsPageState extends State<ReportsPage> {
                   'Total Trips',
                   currentData['totalTrips'],
                   Icons.trip_origin,
-                  Colors.green,
+                  const Color(0xFF7C4DFF), // Changed to purple
                 ),
                 _buildReportCard(
                   'Fuel Consumed',

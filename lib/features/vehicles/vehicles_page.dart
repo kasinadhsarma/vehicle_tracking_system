@@ -339,7 +339,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
                                 _buildActionButton(
                                   'Call Driver',
                                   Icons.phone,
-                                  Colors.green,
+                                  const Color(0xFF7C4DFF), // Changed to purple
                                   () => _callDriver(vehicle),
                                 ),
                                 _buildActionButton(
@@ -444,7 +444,7 @@ class _VehiclesPageState extends State<VehiclesPage> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Active':
-        return Colors.green;
+        return const Color(0xFF7C4DFF); // Changed to purple
       case 'Idle':
         return Colors.orange;
       case 'Offline':

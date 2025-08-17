@@ -365,7 +365,7 @@ class SimpleReportsScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('✅ PDF Report Generated Successfully!'),
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFF7C4DFF), // Changed to purple
           duration: Duration(seconds: 3),
         ),
       );

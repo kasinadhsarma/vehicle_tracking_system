@@ -189,7 +189,7 @@ class _MainDashboardState extends State<MainDashboard>
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF4CAF50),
+        backgroundColor: const Color(0xFF6366F1),
         elevation: 0,
         title: const Text(
           'Vadodara Vehicle Tracker',
@@ -257,14 +257,14 @@ class _MainDashboardState extends State<MainDashboard>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF4CAF50),
-                  const Color(0xFF45A049),
+                  const Color(0xFF6366F1),
+                  const Color(0xFF4F46E5),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF4CAF50).withOpacity(0.3),
+                  color: const Color(0xFF6366F1).withOpacity(0.3),
                   spreadRadius: 2,
                   blurRadius: 10,
                   offset: const Offset(0, 4),
@@ -317,7 +317,7 @@ class _MainDashboardState extends State<MainDashboard>
                   onPressed: _toggleTracking,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF4CAF50),
+                    foregroundColor: const Color(0xFF6366F1),
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
@@ -358,7 +358,7 @@ class _MainDashboardState extends State<MainDashboard>
                   children: [
                     Icon(
                       _userMode == 'driver' ? Icons.drive_eta : Icons.person,
-                      color: const Color(0xFF4CAF50),
+                      color: const Color(0xFF6366F1),
                     ),
                     const SizedBox(width: 12),
                     Text(
@@ -387,7 +387,7 @@ class _MainDashboardState extends State<MainDashboard>
                     children: [
                       const Icon(
                         Icons.speed,
-                        color: Color(0xFF4CAF50),
+                        color: Color(0xFF6366F1),
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -435,7 +435,7 @@ class _MainDashboardState extends State<MainDashboard>
               _buildQuickActionCard(
                 'PDF Reports',
                 Icons.analytics,
-                const Color(0xFF4CAF50),
+                const Color(0xFF6366F1),
                 () => _openReports(),
               ),
               _buildQuickActionCard(
@@ -540,12 +540,12 @@ class _MainDashboardState extends State<MainDashboard>
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50).withOpacity(0.1),
+                        color: const Color(0xFF6366F1).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.location_on,
-                        color: Color(0xFF4CAF50),
+                        color: Color(0xFF6366F1),
                         size: 20,
                       ),
                     ),
@@ -591,7 +591,7 @@ class _MainDashboardState extends State<MainDashboard>
                       children: [
                         const Icon(
                           Icons.speed,
-                          color: Color(0xFF4CAF50),
+                          color: Color(0xFF6366F1),
                           size: 16,
                         ),
                         const SizedBox(width: 8),
@@ -662,7 +662,7 @@ class _MainDashboardState extends State<MainDashboard>
                 icon: const Icon(Icons.add, size: 18),
                 label: const Text('Add'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4CAF50),
+                  backgroundColor: const Color(0xFF6366F1),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -705,7 +705,7 @@ class _MainDashboardState extends State<MainDashboard>
               children: [
                 CircleAvatar(
                   radius: 40,
-                  backgroundColor: const Color(0xFF4CAF50),
+                  backgroundColor: const Color(0xFF6366F1),
                   child: Text(
                     'U',
                     style: const TextStyle(
@@ -735,13 +735,13 @@ class _MainDashboardState extends State<MainDashboard>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF4CAF50).withOpacity(0.1),
+                    color: const Color(0xFF6366F1).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     _userMode == 'driver' ? 'Driver Mode' : 'Rider Mode',
                     style: const TextStyle(
-                      color: Color(0xFF4CAF50),
+                      color: Color(0xFF6366F1),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -831,12 +831,12 @@ class _MainDashboardState extends State<MainDashboard>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAF50).withOpacity(0.1),
+              color: const Color(0xFF6366F1).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               landmark['icon'],
-              color: const Color(0xFF4CAF50),
+              color: const Color(0xFF6366F1),
               size: 24,
             ),
           ),
@@ -870,7 +870,7 @@ class _MainDashboardState extends State<MainDashboard>
                 landmark['distance'],
                 style: const TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF4CAF50),
+                  color: Color(0xFF6366F1),
                 ),
               ),
               const SizedBox(height: 4),
@@ -908,7 +908,7 @@ class _MainDashboardState extends State<MainDashboard>
             children: [
               CircleAvatar(
                 radius: 25,
-                backgroundColor: const Color(0xFF4CAF50),
+                backgroundColor: const Color(0xFF6366F1),
                 child: Text(
                   member['name'][0],
                   style: const TextStyle(
@@ -924,7 +924,7 @@ class _MainDashboardState extends State<MainDashboard>
                   width: 14,
                   height: 14,
                   decoration: BoxDecoration(
-                    color: member['isOnline'] ? Colors.green : Colors.grey,
+                    color: member['isOnline'] ? Color(0xFF6366F1) : Colors.grey,
                     shape: BoxShape.circle,
                     border: Border.all(color: Colors.white, width: 2),
                   ),
@@ -962,7 +962,7 @@ class _MainDashboardState extends State<MainDashboard>
                 Text(
                   member['location'],
                   style: const TextStyle(
-                    color: Color(0xFF4CAF50),
+                    color: Color(0xFF6366F1),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -982,7 +982,7 @@ class _MainDashboardState extends State<MainDashboard>
             onPressed: () => _callFamilyMember(member),
             icon: const Icon(
               Icons.phone,
-              color: Color(0xFF4CAF50),
+              color: Color(0xFF6366F1),
             ),
           ),
         ],
@@ -997,12 +997,12 @@ class _MainDashboardState extends State<MainDashboard>
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: const Color(0xFF4CAF50).withOpacity(0.1),
+            color: const Color(0xFF6366F1).withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             icon,
-            color: const Color(0xFF4CAF50),
+            color: const Color(0xFF6366F1),
           ),
         ),
         title: Text(
@@ -1043,7 +1043,7 @@ class _MainDashboardState extends State<MainDashboard>
         onTap: (index) => setState(() => _selectedBottomIndex = index),
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF4CAF50),
+        selectedItemColor: const Color(0xFF6366F1),
         unselectedItemColor: const Color(0xFF8A8A8A),
         selectedFontSize: 12,
         unselectedFontSize: 12,
@@ -1108,7 +1108,7 @@ class _MainDashboardState extends State<MainDashboard>
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Location shared successfully!'),
-        backgroundColor: Color(0xFF4CAF50),
+        backgroundColor: Color(0xFF6366F1),
       ),
     );
   }
@@ -1125,7 +1125,7 @@ class _MainDashboardState extends State<MainDashboard>
     Get.snackbar(
       'Route History',
       'Your trip history will be displayed here',
-      backgroundColor: const Color(0xFF4CAF50),
+      backgroundColor: const Color(0xFF6366F1),
       colorText: Colors.white,
     );
   }
@@ -1135,7 +1135,7 @@ class _MainDashboardState extends State<MainDashboard>
     Get.snackbar(
       'Settings',
       'App settings will be displayed here',
-      backgroundColor: const Color(0xFF4CAF50),
+      backgroundColor: const Color(0xFF6366F1),
       colorText: Colors.white,
     );
   }
@@ -1144,7 +1144,7 @@ class _MainDashboardState extends State<MainDashboard>
     Get.snackbar(
       'Add Family Member',
       'Feature to add family members for tracking',
-      backgroundColor: const Color(0xFF4CAF50),
+      backgroundColor: const Color(0xFF6366F1),
       colorText: Colors.white,
     );
   }
@@ -1153,7 +1153,7 @@ class _MainDashboardState extends State<MainDashboard>
     Get.snackbar(
       'Calling ${member['name']}',
       'Dialing ${member['phone']}',
-      backgroundColor: const Color(0xFF4CAF50),
+      backgroundColor: const Color(0xFF6366F1),
       colorText: Colors.white,
     );
   }
@@ -1165,7 +1165,7 @@ class _MainDashboardState extends State<MainDashboard>
       Get.snackbar(
         title,
         'This feature will be implemented soon',
-        backgroundColor: const Color(0xFF4CAF50),
+        backgroundColor: const Color(0xFF6366F1),
         colorText: Colors.white,
       );
     }
