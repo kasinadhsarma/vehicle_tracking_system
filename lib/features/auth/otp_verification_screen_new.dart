@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../../core/services/auth_service.dart';
+import '../../core/constants/app_colors.dart';
 import 'user_registration_screen.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
@@ -115,34 +115,21 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
     setState(() => _isLoading = true);
 
     try {
-      // Demo mode for web - accept any 6-digit OTP
-      if (kIsWeb && widget.verificationId == 'demo_verification_id') {
-        // Simulate verification delay
-        await Future.delayed(const Duration(seconds: 1));
-        
-        if (mounted) {
-          _showSuccess('Demo OTP verified successfully!');
-          // Navigate to dashboard for demo
-          Get.offAllNamed('/dashboard');
-        }
-      } else {
-        // Real Firebase Auth verification
-        final authService = context.read<AuthService>();
-        
-        final userCredential = await authService.signInWithPhoneNumber(
-          smsCode: _otpCode,
-          verificationId: widget.verificationId,
-        );
+      final authService = context.read<AuthService>();
+      
+      final userCredential = await authService.signInWithPhoneNumber(
+        smsCode: _otpCode,
+        verificationId: widget.verificationId,
+      );
 
-        if (userCredential != null && mounted) {
-          // Check if this is a new user who needs to complete registration
-          if (userCredential.additionalUserInfo?.isNewUser == true) {
-            Get.off(() => UserRegistrationScreen(phoneNumber: widget.phoneNumber));
-          } else {
-            // Existing user, go to dashboard
-            _showSuccess('Welcome back!');
-            Get.offAllNamed('/dashboard');
-          }
+      if (userCredential != null && mounted) {
+        // Check if this is a new user who needs to complete registration
+        if (userCredential.additionalUserInfo?.isNewUser == true) {
+          Get.off(() => UserRegistrationScreen(phoneNumber: widget.phoneNumber));
+        } else {
+          // Existing user, go to dashboard
+          _showSuccess('Welcome back!');
+          Get.offAllNamed('/dashboard');
         }
       }
     } catch (e) {
@@ -201,9 +188,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
             children: [
               const Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(message),
-              ),
+              Text(message),
             ],
           ),
           backgroundColor: Colors.red,
@@ -222,9 +207,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
             children: [
               const Icon(Icons.check_circle_outline, color: Colors.white),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(message),
-              ),
+              Text(message),
             ],
           ),
           backgroundColor: const Color(0xFF6C5CE7),
@@ -397,7 +380,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
         children: [
           const Icon(
             Icons.phone_android,
-            color: Color(0xFF6C5CE7),
+            color: Color(0xFF4CAF50),
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -431,16 +414,16 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _focusNodes[index].hasFocus 
-              ? const Color(0xFF6C5CE7)
+              ? const Color(0xFF4CAF50)
               : _otpControllers[index].text.isNotEmpty
-                  ? const Color(0xFF6C5CE7)
+                  ? const Color(0xFF4CAF50)
                   : const Color(0xFFE9ECEF),
           width: 2,
         ),
         boxShadow: [
           if (_focusNodes[index].hasFocus || _otpControllers[index].text.isNotEmpty)
             BoxShadow(
-              color: const Color(0xFF6C5CE7).withOpacity(0.1),
+              color: const Color(0xFF4CAF50).withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 8,
               offset: const Offset(0, 2),
@@ -481,11 +464,11 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
         onPressed: (_isOtpComplete && !_isLoading) ? _verifyOTP : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: _isOtpComplete 
-              ? const Color(0xFF6C5CE7)
+              ? const Color(0xFF4CAF50)
               : const Color(0xFFE9ECEF),
           foregroundColor: Colors.white,
           elevation: _isOtpComplete ? 4 : 0,
-          shadowColor: const Color(0xFF6C5CE7).withOpacity(0.3),
+          shadowColor: const Color(0xFF4CAF50).withOpacity(0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -526,7 +509,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
           Text(
             'Resend in $_resendTimer s',
             style: const TextStyle(
-              color: Color(0xFF6C5CE7),
+              color: Color(0xFF4CAF50),
               fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
@@ -537,13 +520,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF6C5CE7).withOpacity(0.1),
+                color: const Color(0xFF4CAF50).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text(
                 'Resend Code',
                 style: TextStyle(
-                  color: Color(0xFF6C5CE7),
+                  color: Color(0xFF4CAF50),
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),

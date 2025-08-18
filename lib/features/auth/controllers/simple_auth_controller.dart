@@ -74,7 +74,7 @@ class AuthController extends GetxController {
         Get.snackbar(
           'Success',
           result.message,
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF6C5CE7),
           colorText: Colors.white,
           icon: const Icon(Icons.check_circle, color: Colors.white),
         );
@@ -124,7 +124,7 @@ class AuthController extends GetxController {
         Get.snackbar(
           'Success',
           result.message,
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF6C5CE7),
           colorText: Colors.white,
           icon: const Icon(Icons.check_circle, color: Colors.white),
         );

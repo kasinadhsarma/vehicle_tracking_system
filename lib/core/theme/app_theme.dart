@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 // Custom colors for status indicators
 class StatusColors {
-  static const Color active = Color(0xFF4CAF50);
+  static const Color active = Color(0xFF7C4DFF); // Deep Purple
   static const Color idle = Color(0xFFFF9800);
   static const Color offline = Color(0xFFF44336);
   static const Color warning = Color(0xFFFFEB3B);
 
-  static const Color activeDark = Color(0xFF81C784);
+  static const Color activeDark = Color(0xFFB388FF); // Lighter Purple for dark mode
   static const Color idleDark = Color(0xFFFFB74D);
   static const Color offlineDark = Color(0xFFE57373);
   static const Color warningDark = Color(0xFFFFF176);
@@ -30,7 +30,7 @@ class AppGradients {
   static const LinearGradient successGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+    colors: [Color(0xFF7C4DFF), Color(0xFF6A1B9A)], // Purple gradient
   );
 
   static const LinearGradient warningGradient = LinearGradient(
@@ -117,7 +117,7 @@ class AppTheme {
   static const Color secondaryBlue = Color(0xFF42A5F5);
 
   // Accent colors
-  static const Color accentGreen = Color(0xFF4CAF50);
+  static const Color accentGreen = Color(0xFF7C4DFF); // Changed to purple
   static const Color accentOrange = Color(0xFFFF9800);
   static const Color accentRed = Color(0xFFF44336);
   static const Color accentPurple = Color(0xFF9C27B0);
@@ -271,7 +271,7 @@ class AppTheme {
           brightness: Brightness.dark,
         ).copyWith(
           primary: const Color(0xFF64B5F6),
-          secondary: const Color(0xFF81C784),
+          secondary: const Color(0xFFB388FF), // Changed from green to purple
           surface: const Color(0xFF1E1E1E),
           background: const Color(0xFF121212),
           onPrimary: const Color(0xFF1A1A1A),

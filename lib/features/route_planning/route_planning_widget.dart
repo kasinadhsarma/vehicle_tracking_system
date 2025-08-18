@@ -104,7 +104,7 @@ class _RoutePlanningWidgetState extends State<RoutePlanningWidget> {
             value: selectedStartNode,
             onChanged: (value) => setState(() => selectedStartNode = value),
             icon: Icons.my_location,
-            color: Colors.green,
+            color: const Color(0xFF7C4DFF), // Changed to purple
           ),
         ),
         const SizedBox(width: 16),
@@ -391,14 +391,14 @@ class _RoutePlanningWidgetState extends State<RoutePlanningWidget> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: index == 0 
-                  ? Colors.green.withOpacity(0.1)
+                  ? const Color(0xFF7C4DFF).withOpacity(0.1) // Changed to purple
                   : isLast 
                     ? Colors.red.withOpacity(0.1)
                     : Colors.grey.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
                   color: index == 0 
-                    ? Colors.green
+                    ? const Color(0xFF7C4DFF) // Changed to purple
                     : isLast 
                       ? Colors.red
                       : Colors.grey,
@@ -411,7 +411,7 @@ class _RoutePlanningWidgetState extends State<RoutePlanningWidget> {
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
                   color: index == 0 
-                    ? Colors.green[700]
+                    ? const Color(0xFF6A1B9A) // Dark purple for better contrast
                     : isLast 
                       ? Colors.red[700]
                       : Colors.grey[700],
@@ -485,7 +485,7 @@ class _RoutePlanningWidgetState extends State<RoutePlanningWidget> {
         Get.snackbar(
           'Routes Found',
           'Found ${routes.length} route options using different algorithms',
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF7C4DFF), // Changed to purple
           colorText: Colors.white,
           duration: const Duration(seconds: 2),
         );
